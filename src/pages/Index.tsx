@@ -7,16 +7,57 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
 import Icon from '@/components/ui/icon';
 
 const Index = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    product: '',
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
       setIsMenuOpen(false);
+    }
+  };
+
+  const handleOpenForm = () => {
+    setIsFormOpen(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      toast({
+        title: 'Заявка отправлена!',
+        description: 'Мы свяжемся с вами в ближайшее время',
+      });
+
+      setFormData({ name: '', email: '', product: '' });
+      setIsFormOpen(false);
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось отправить заявку. Попробуйте ещё раз.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -89,10 +130,10 @@ const Index = () => {
                   Подбор ТН ВЭД, маркировка, сертификация, логистика и бухучет для WB/Ozon/ЯМ за 15 минут
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <Button size="lg" className="text-base font-semibold">
+                  <Button size="lg" className="text-base font-semibold" onClick={handleOpenForm}>
                     Получить бесплатный аудит товара
                   </Button>
-                  <Button size="lg" variant="outline" className="text-base font-semibold">
+                  <Button size="lg" variant="outline" className="text-base font-semibold" onClick={handleOpenForm}>
                     Проверить риск блокировки сейчас
                   </Button>
                 </div>
@@ -399,7 +440,7 @@ const Index = () => {
                       </li>
                     ))}
                   </ul>
-                  <Button className="w-full" size="lg">
+                  <Button className="w-full" size="lg" onClick={handleOpenForm}>
                     Проверить товар бесплатно
                   </Button>
                 </CardContent>
@@ -430,7 +471,7 @@ const Index = () => {
                       </li>
                     ))}
                   </ul>
-                  <Button className="w-full" size="lg">
+                  <Button className="w-full" size="lg" onClick={handleOpenForm}>
                     Начать сейчас
                   </Button>
                 </CardContent>
@@ -502,7 +543,7 @@ const Index = () => {
             <p className="text-lg text-muted-foreground mb-8">
               Начните с бесплатного аудита одного товара прямо сейчас
             </p>
-            <Button size="lg" className="text-lg px-8 py-6">
+            <Button size="lg" className="text-lg px-8 py-6" onClick={handleOpenForm}>
               Начать аудит прямо сейчас
             </Button>
           </div>
@@ -548,6 +589,69 @@ const Index = () => {
           </div>
         </div>
       </footer>
+
+      {isFormOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in" onClick={() => setIsFormOpen(false)}>
+          <Card className="w-full max-w-md animate-scale-in" onClick={(e) => e.stopPropagation()}>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="font-heading font-bold text-2xl text-secondary">Получить аудит товара</h3>
+                <button onClick={() => setIsFormOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Icon name="X" size={24} />
+                </button>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <Label htmlFor="name" className="text-sm font-medium mb-2 block">Ваше имя</Label>
+                  <Input
+                    id="name"
+                    type="text"
+                    placeholder="Иван Иванов"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    required
+                    className="w-full"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="email" className="text-sm font-medium mb-2 block">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="ivan@example.com"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    required
+                    className="w-full"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="product" className="text-sm font-medium mb-2 block">Ссылка на товар или описание</Label>
+                  <Textarea
+                    id="product"
+                    placeholder="Вставьте ссылку на WB/Ozon или опишите товар"
+                    value={formData.product}
+                    onChange={(e) => setFormData({ ...formData, product: e.target.value })}
+                    required
+                    className="w-full min-h-24"
+                  />
+                </div>
+
+                <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
+                  {isSubmitting ? 'Отправка...' : 'Получить бесплатный аудит'}
+                </Button>
+
+                <p className="text-xs text-muted-foreground text-center">
+                  Нажимая кнопку, вы соглашаетесь с политикой конфиденциальности
+                </p>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };
